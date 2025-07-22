@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# shellcheck disable=SC1091
+source "$HOME/.dotfiles/zsh/functions/_ffi"
+source "$HOME/.dotfiles/zsh/functions/_ffs"
+# source "$HOME/.dotfiles/zsh/proj.zsh"
+
+SESSIONS_DIR="${HOME}/webshelf/.sessions"
+mkdir -p "$SESSIONS_DIR"
+
+function _list_windows() {
+  chrome-cli list windows | sed 's/^ *//'
+}
+
+_save_window() {
+  local window_id=$1
+  local filepath=$2
+
+  chrome-cli list links -w "$window_id" \
+    | sed 's/^\[[0-9]*\] //' > "$filepath"
+  echo "Saved to $filepath"
+}
+
+function save_session() {
+  echo "Available Chrome windows:"
+  _list_windows | nl -w2 -s'. '
+
+  echo ""
+  echo -n "Select window to save (by number): "
+  read -r window_num
+
+  # Extract numerical id
+  window_id=$(chrome-cli list windows \
+    | sed -n "${window_num}p" \
+    | cut -d'[' -f2 | cut -d']' -f1
+  )
+  # Make a valid snake case title
+  window_title=$(chrome-cli list windows \
+    | sed -n "${window_num}p" \
+    | cut -d']' -f2- \
+    | tr '[:upper:]' '[:lower:]' \
+    | sed -E 's/[{}().,]+//g; s/[^a-z0-9]+/_/g; s/^_+|_+$//g'
+  )
+
+  # Prompt for alternate title
+  default="${window_title}"
+  echo ""
+  read -erp "Type session title or [enter] for default ($default): " input
+  filename="$(date +%F)_${window_id}_${input:-$default}_tabs.txt"
+  filepath="${SESSIONS_DIR}/${filename}"
+
+  echo "Saving tabs from Window ID: $window_id"
+  if [[ -e "$filepath" ]]; then
+    read -r -p "File exists: $filepath. Overwrite? [y/N] " answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+      _save_window "$window_id" "$filepath"
+    else
+      echo "Skipped saving."
+    fi
+  else
+    _save_window "$window_id" "$filepath"
+  fi
+}
+
+function restore_session() {
+  filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
+  urls=$(fzf --ansi --multi --no-sort --track < "$SESSIONS_DIR/$filepath")
+
+  # TODO: alt-enter in fzf: open selected; listen alt-a: rest all w/ warn [y/N]
+  # TODO: In fzf: show title along with each URL as in ch/cb
+  echo "Restoring selected tabs..."
+  while IFS= read -r url; do
+    echo ""
+    chrome-cli open "$url"
+  done <<< "$urls"
+}
+
+case "$1" in
+  save)
+    save_session
+    ;;
+  open)
+    restore_session
+    ;;
+  *)
+    echo "Usage: webshelf {save|open}"
+    ;;
+esac
