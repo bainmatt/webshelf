@@ -1,5 +1,13 @@
 # Webshelf
 
+Webshelf is a simple shell program that helps you manage your Chrome tabs
+the right way: from the command line 😎.
+
+<!-- TODO: Symlink to fff-{preview,action}.sh, _ffi, _ffs in src/ -->
+[Demo](#demo) • [How to use](#usage) • [Installation](#installation)
+
+## Rationale
+
 Every internet user has dealt with the dreaded sprawl of browser tabs
 accumulated over a session of unchecked browsing. How did this happen?
 There are many culprits -- competing priorities, a long research
@@ -8,9 +16,6 @@ all had to grapple with this untenable situation at one point or another,
 and maybe have even wondered: "Could there be a better way?". The answer is
 yes! Webshelf has heard your call and is here to rescue us from our bad
 browsing habits.
-
-<!-- TODO: Symlink to fff-{preview,action}.sh, _ffi, _ffs in src/ -->
-[Installation](#installation) • [How to use](#usage)
 
 ## Demo
 

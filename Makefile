@@ -12,5 +12,5 @@ help:
 
 demo:
 	@svg-term --command="bash doc/screencast.sh" \
-		--out doc/demo.svg --width=50 --padding=10
+		--out doc/demo.svg --width=60 --padding=10
 	@sed -i '' 's/<text/<text font-size="1.67"/g' doc/demo.svg
