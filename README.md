@@ -59,22 +59,16 @@ time being, you're on your own, but I'm sure you can figure it out):
 
 To install webshelf, clone the repository and make the script executable:
 
-    ```bash
     git clone XXX
     cd webshelf
     chmod +x webshelf/webshelf
-    ```
 
 Add webshelf to your PATH by adding the following to your .zhrc or .bashrc:
 
-    ```bash
     export PATH="$PATH:/path/to/webshelf"
-    ```
 
 Install the required dependencies using Homebrew:
 
-    ```bash
     brew install chrome-cli fzf bat
-    ```
 
 ~ happy browsing ~

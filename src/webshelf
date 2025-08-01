@@ -62,12 +62,12 @@ function save_session() {
   fi
 }
 
+# Note: Retrieving webpage titles via curl/htmlq is doable but slow.
 function restore_session() {
   filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
   urls=$(fzf --ansi --multi --no-sort --track < "$SESSIONS_DIR/$filepath")
 
   # TODO: alt-enter in fzf: open selected; listen alt-a: rest all w/ warn [y/N]
-  # TODO: In fzf: show title along with each URL as in ch/cb
   echo "Restoring selected tabs..."
   while IFS= read -r url; do
     echo ""
