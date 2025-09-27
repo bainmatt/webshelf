@@ -63,24 +63,94 @@ function save_session() {
 }
 
 # Note: Retrieving webpage titles via curl/htmlq is doable but slow.
-function restore_session() {
-  filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
-  urls=$(fzf --ansi --multi --no-sort --track < "$SESSIONS_DIR/$filepath")
+restore_session() {
+  local filepath
 
-  # TODO: alt-enter in fzf: open selected; listen alt-a: rest all w/ warn [y/N]
+  # If a filename or dir argument is provided
+  if [[ -n "$1" ]]; then
+    if [[ -d "$SESSIONS_DIR/$1" ]]; then
+      filepath=$1/$(cd "$SESSIONS_DIR/$1" && _ffs -T -n 100 . -e txt | _ffi)
+    else
+      filepath="$1"
+      [[ "$filepath" != *.txt ]] && filepath="${filepath}.txt"
+    fi
+  else
+    filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
+  fi
+
+  if [[ -z "$filepath" ]]; then
+    echo "No session selected. Exiting."
+    return 0
+  fi
+  local filepath
+
+  # If a filename argument is provided
+  # if [[ -n "$1" ]]; then
+  #   filepath="$1"
+  #   [[ "$filepath" != *.txt ]] && filepath="${filepath}.txt"
+  # # Interactive selection if no argument
+  # else
+  #   filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
+
+  #   if [[ -z "$filepath" ]]; then
+  #     echo "No session selected. Exiting."
+  #     return 0
+  #   fi
+  # fi
+
+  filepath="$SESSIONS_DIR/$filepath"
+  if [[ $(wc -w <<<"$filepath") -gt 1 ]]; then
+    echo "Multiple files selected, please choose only one."
+    return 1
+  elif [[ ! -f "$filepath" ]]; then
+    echo "File '$(basename "$filepath")' not found in $SESSIONS_DIR"
+    return 1
+  fi
+
+  # Pick URLs from the session file
+  local urls
+  urls=$(fzf --ansi --multi --tac --no-sort --track < "$filepath")
+
+  if [[ -z "$urls" ]]; then
+    echo "No URLs selected. Exiting."
+    return 1
+  fi
+
   echo "Restoring selected tabs..."
   while IFS= read -r url; do
     echo ""
     chrome-cli open "$url"
   done <<< "$urls"
 }
+# function restore_session() {
+#   filepath=$(cd "$SESSIONS_DIR" && _ffs -T -n 100 . -e txt | _ffi)
+
+#   if [[ -z "$filepath" ]]; then
+#     echo "No session selected. Exiting."
+#     exit 0
+#   fi
+
+#   urls=$(fzf --ansi --multi --tac --no-sort --track < "$SESSIONS_DIR/$filepath")
+
+#   if [[ -z "$urls" ]]; then
+#     echo "No URLs selected. Exiting."
+#     exit 1
+#   fi
+
+#   # TODO: alt-enter in fzf: open selected; listen alt-a: rest all w/ warn [y/N]
+#   echo "Restoring selected tabs..."
+#   while IFS= read -r url; do
+#     echo ""
+#     chrome-cli open "$url"
+#   done <<< "$urls"
+# }
 
 case "$1" in
   save)
     save_session
     ;;
   open)
-    restore_session
+    restore_session "$2"
     ;;
   *)
     echo "Usage: webshelf {save|open}"
